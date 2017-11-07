@@ -2,6 +2,7 @@
 
 #Copy file to AWS S3 
 
+DirList="/tmp/dir_list.txt"
 aws_path="s3://MyBucket/MyFolder/"
 localpath="/tmp/"
 errorReport="/tmp/S3_backuperror.txt"
@@ -9,7 +10,7 @@ copyReport="/tmp/S3_copyreport.txt"
 echo "Script Started on :`date`">>$errorReport
 echo "Script Started on :`date`">>$copyReport
 
-for oneDB in `cat listDB.txt`
+for oneDB in `cat $DirList`
 do
 	abspath="$localpath$oneDB/"
 	awsabspath="$aws_path$(echo "$oneDB" | tr -d '[:space:]')/"
@@ -30,11 +31,14 @@ do
 				localsinglefile=$abspath$CheckingOne
 				WithLocal=`ls -l $localsinglefile | awk '{print $5","}'`
 				WithLocal=$WithLocal$CheckingOne
-			        if [ "$WithAWS"<>"$WithLocal" ]
+			        if [ "$WithAWS" == "$WithLocal" ]
 				then
 					echo "SUCCESSFUL: Date:`date` File $localsinglefile Copied Successfully to $awssinglefile">>$copyReport
+					
+					#Delete file after the after copy successfull
+					rm -f $localsinglefile && echo "File: $localsinglefile Deleted" >>$copyReport
 				else
-					echo "ERROR: Date:`date` File $localsinglefile Not Copied to $awssinglefile">>$copyReport
+					echo "ERROR: Date:`date` File $localsinglefile Not Copied to $awssinglefile" >>$copyReport
 				fi
 			done
 
